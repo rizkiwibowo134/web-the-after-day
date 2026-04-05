@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE DAY AFTER - Sistem Kasir Modern</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CSS UTAMA --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background: #fdf5e6; min-height: 100vh; }
+
+        /* --- LOGIN PAGE --- */
+        #login-page {
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+            background: linear-gradient(135deg, #5d4037, #8d6e63);
+            position: fixed; width: 100%; top: 0; left: 0; z-index: 9999;
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center;
+        }
+        .login-card i { font-size: 50px; color: #5d4037; margin-bottom: 15px; }
+        .login-card h2 { color: #5d4037; margin-bottom: 20px; }
+        .login-group { text-align: left; margin-bottom: 15px; }
+        .login-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #5d4037; }
+        
+        #main-app { display: none; }
+
+        .header { background: linear-gradient(135deg, #5d4037, #8d6e63); color: white; padding: 20px; text-align: center; position: relative; }
+        .btn-logout { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+
+        .container { max-width: 1400px; margin: 20px auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); overflow: hidden; }
+        .main-content { padding: 30px; }
+        
+        .hero { background: linear-gradient(135deg, #5d4037, #8d6e63); color: white; padding: 40px 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; }
+        
+        .standalone-search { margin-bottom: 30px; padding: 10px; }
+        .search-wrapper { position: relative; width: 100%; }
+        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+        .search-wrapper input { width: 100%; padding: 15px 15px 15px 45px; border: 1px solid #ddd; border-radius: 12px; font-size: 1rem; }
+        
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .menu-btn { background: white; border-radius: 15px; padding: 20px 10px; text-align: center; cursor: pointer; border: 1px solid #eee; transition: 0.3s; color: #333; }
+        .menu-btn i { font-size: 24px; margin-bottom: 8px; color: #5d4037; display: block; }
+        .menu-btn:hover { transform: translateY(-5px); background: #fffdf0; }
+        
+        .section { display: none; margin-top: 20px; padding: 25px; background: #ffffff; border-radius: 15px; border: 1px solid #eaeaea; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section.active { display: block; }
+        
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; background: #faf7f2; padding: 20px; border-radius: 12px; }
+        .btn { padding: 12px 25px; border-radius: 10px; cursor: pointer; border: none; font-weight: bold; color: white; margin-top: 10px; transition: 0.2s; }
+        .btn-success { background: #28a745; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-primary { background: #5d4037; }
+        .btn-danger { background: #dc3545; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #fffdd0; color: #5d4037; }
+
+        .total-display { background: #3e2723; color: #fff; padding: 15px 20px; border-radius: 10px; margin: 15px 0; font-size: 1.2em; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* --- STYLE STRUK --- */
+        .struk { background: #fff; padding: 25px; max-width: 400px; margin: 20px auto; border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: #444; line-height: 1.5; }
+        .struk-header { text-align: center; margin-bottom: 20px; }
+        .struk-header h2 { font-weight: 900; letter-spacing: -1px; margin-bottom: 5px; }
+        .struk-info { font-size: 0.85em; color: #777; border-bottom: 1px dashed #ddd; padding-bottom: 10px; margin-bottom: 15px; }
+        .struk-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; }
+        .struk-footer { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; }
+        .struk-total { font-weight: bold; font-size: 1.1em; color: #000; }
+        .lunas-stamp { text-align: center; margin-top: 20px; font-weight: bold; letter-spacing: 5px; color: #777; }
+
+        .alert { padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-info { background: #fff9e6; color: #5d4037; border: 1px solid #ffeeba; }
+        .waktu-antri { font-size: 0.8em; color: #5d4037; background: #fffdd0; padding: 4px 8px; border-radius: 5px; font-weight: bold; }
+
+        .btn-hapus-item { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1em; }
+        .btn-hapus-item:hover { color: #a71d2a; }
+    </style>
+</head>
+
+<body>
+
+<div id="login-page">
+    <div class="login-card">
+        <i class="fas fa-user-circle"></i>
+        <h2>THE DAY AFTER</h2>
+        <div class="login-group">
+            <label>Username</label>
+            <input type="text" id="username" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;" value="">
+        </div>
+        <div class="login-group">
+            <label>Password</label>
+            <input type="password" id="password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;" value="">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="login()">Masuk ke Kasir</button>
+        <p id="error-msg" style="color:red; margin-top:10px; display:none; font-size:0.8em;">Username atau Password salah!</p>
+    </div>
+</div>
+
+<div id="main-app">
+    <div class="header">
+        <h1><i class="fas fa-shopping-cart"></i> THE DAY AFTER</h1>
+        <p>Sistem Kasir Modern</p>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="hero">
+                <h2>Dashboard Kasir</h2>
+                <p>Kelola penjualan Anda dengan lebih mudah dan cepat</p>
+            </div>
+
+            <div class="standalone-search">
+                <h3><i class="fas fa-search"></i> Pencarian Produk</h3>
+                <div class="search-wrapper">
+                    <input type="text" id="global-search" placeholder="Cari Nama atau ID Produk..." onkeyup="cariProduk()">
+                </div>
+                <div id="hasil-cari"></div>
+            </div>
+
+            <div class="menu-grid">
+                <button class="menu-btn" onclick="showSection('produk-manajemen')">
+                    <i class="fas fa-boxes"></i><span>Kelola Produk</span>
+                </button>
+                <button class="menu-btn" onclick="showSection('antrian')">
+                    <i class="fas fa-users"></i><span>Antrian</span>
+                </button>
+                <button class="menu-btn" onclick="showSection('transaksi')">
+                    <i class="fas fa-credit-card"></i><span>Transaksi</span>
+                </button>
+            </div>
+
+            <div id="produk-manajemen" class="section">
+                <h3><i class="fas fa-boxes"></i> Manajemen Inventaris</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>ID Produk</label><input type="text" id="p-id" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></div>
+                    <div class="form-group"><label>Nama Produk</label><input type="text" id="p-nama" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></div>
+                    <div class="form-group"><label>Harga</label><input type="number" id="p-harga" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></div>
+                    <div class="form-group"><label>Stok</label><input type="number" id="p-stok" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></div>
+                    <div id="btn-container">
+                        <button class="btn btn-success" onclick="tambahProduk()">Simpan Produk</button>
+                    </div>
+                </div>
+                <div id="produk-table"></div>
+            </div>
+
+            <div id="antrian" class="section">
+                <h3><i class="fas fa-users"></i> Manajemen Antrian</h3>
+                <input type="text" id="nama-pelanggan" placeholder="Nama Pelanggan" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+                <button class="btn btn-primary" onclick="enqueue()">Tambah ke Antrian</button>
+                <hr style="margin:20px 0;">
+                <button class="btn btn-success" onclick="dequeue()">Panggil Berikutnya</button>
+                <div id="status-layani"></div>
+                <div id="antrian-list" style="margin-top:20px;"></div>
+            </div>
+
+            <div id="transaksi" class="section">
+                <h3><i class="fas fa-credit-card"></i> Kasir / Transaksi</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ID Produk</label>
+                        <input type="text" id="t-id" placeholder="Masukkan ID" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd;">
+                    </div>
+                    <div class="form-group">
+                        <label>Jumlah</label>
+                        <input type="number" id="t-qty" value="1" min="1" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd;">
+                    </div>
+                    <button class="btn btn-primary" onclick="addToCart()">Tambah Item</button>
+                </div>
+                
+                <div class="total-display">
+                    <div id="cart-summary">Item: 0</div>
+                    <div id="total-harga">Rp 0</div>
+                </div>
+
+                <div id="keranjang-tabel-wrapper">
+                    <p style="color:#888; font-style:italic; font-size:0.9em; margin-bottom:5px;">* Klik ikon sampah untuk menghapus item jika salah input.</p>
+                    <table id="cart-table-display">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Harga</th>
+                                <th>Jumlah</th>
+                                <th>Subtotal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-body"></tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <label>Uang Bayar</label>
+                    <input type="number" id="uang-bayar" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;" placeholder="0">
+                    <button class="btn btn-success" style="width:100%;" onclick="prosesBayar()">Proses Pembayaran</button>
+                </div>
+            </div>
+
+            <div id="struk-section" class="section">
+                <div id="struk-area"></div>
+                <div style="text-align: center; margin-top:20px;">
+                    <button class="btn btn-primary" onclick="window.print()">Cetak Struk</button>
+                    <button class="btn btn-danger" onclick="showSection('transaksi')">Tutup</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    let produkList = [];
+    let antrian = []; 
+    let cart = [];    
+    let total = 0;
+    let pelangganAktif = "Umum"; 
+    let isEditing = false;
+
+    function login() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        if(u === "admin" && p === "123") {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+        } else { document.getElementById('error-msg').style.display = 'block'; }
+    }
+    function logout() { location.reload(); }
+
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+        if(id === 'produk-manajemen') renderProduk();
+    }
+
+    function formatRp(nom) { return Number(nom).toLocaleString('id-ID'); }
+
+    // --- PRODUK ---
+    function tambahProduk() {
+        const id = document.getElementById('p-id').value;
+        const nama = document.getElementById('p-nama').value;
+        const harga = parseInt(document.getElementById('p-harga').value);
+        const stok = parseInt(document.getElementById('p-stok').value);
+        if(!id || !nama || isNaN(harga)) return alert("Lengkapi data!");
+        produkList.push({ id, nama, harga, stok });
+        resetFormProduk(); renderProduk();
+    }
+
+    function renderProduk() {
+        const div = document.getElementById('produk-table');
+        if(produkList.length === 0) { div.innerHTML = "<p>Kosong.</p>"; return; }
+        let h = `<table><tr><th>ID</th><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr>`;
+        produkList.forEach(p => {
+            h += `<tr><td>${p.id}</td><td>${p.nama}</td><td>Rp ${formatRp(p.harga)}</td><td>${p.stok}</td>
+            <td><button class="btn-warning" onclick="prepareEdit('${p.id}')">Edit</button> <button class="btn-danger" onclick="hapusProduk('${p.id}')">Hapus</button></td></tr>`;
+        });
+        div.innerHTML = h + `</table>`;
+    }
+
+    function prepareEdit(id) {
+        const p = produkList.find(i => i.id === id);
+        document.getElementById('p-id').value = p.id;
+        document.getElementById('p-id').readOnly = true;
+        document.getElementById('p-nama').value = p.nama;
+        document.getElementById('p-harga').value = p.harga;
+        document.getElementById('p-stok').value = p.stok;
+        document.getElementById('btn-container').innerHTML = `<button class="btn btn-warning" onclick="updateProduk()">Update</button> <button class="btn btn-danger" onclick="resetFormProduk()">Batal</button>`;
+        isEditing = true;
+    }
+
+    function updateProduk() {
+        const id = document.getElementById('p-id').value;
+        const i = produkList.findIndex(p => p.id === id);
+        produkList[i].nama = document.getElementById('p-nama').value;
+        produkList[i].harga = parseInt(document.getElementById('p-harga').value);
+        produkList[i].stok = parseInt(document.getElementById('p-stok').value);
+        resetFormProduk(); renderProduk();
+    }
+
+    function resetFormProduk() {
+        document.getElementById('p-id').value = ""; document.getElementById('p-id').readOnly = false;
+        document.getElementById('p-nama').value = ""; document.getElementById('p-harga').value = "";
+        document.getElementById('p-stok').value = ""; 
+        document.getElementById('btn-container').innerHTML = `<button class="btn btn-success" onclick="tambahProduk()">Simpan Produk</button>`;
+        isEditing = false;
+    }
+
+    function hapusProduk(id) { if(confirm("Hapus?")) { produkList = produkList.filter(p => p.id !== id); renderProduk(); } }
+
+    // --- ANTRIAN ---
+    function enqueue() {
+        const n = document.getElementById('nama-pelanggan').value;
+        if(!n) return;
+        antrian.push({ nama: n, waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) });
+        document.getElementById('nama-pelanggan').value = ""; renderAntrian();
+    }
+    function dequeue() {
+        if(antrian.length === 0) return alert("Kosong!");
+        const d = antrian.shift(); pelangganAktif = d.nama;
+        document.getElementById('status-layani').innerHTML = `<div class="alert alert-success">Melayani: <strong>${pelangganAktif}</strong></div>`;
+        renderAntrian();
+    }
+    function renderAntrian() {
+        let h = "<ul>";
+        antrian.forEach((p, i) => { h += `<li style="background:#fff; margin-bottom:8px; padding:12px; border-radius:8px; border:1px solid #eee; display:flex; justify-content:space-between;"><strong>${i+1}. ${p.nama}</strong><span class="waktu-antri">${p.waktu}</span></li>`; });
+        document.getElementById('antrian-list').innerHTML = h + "</ul>";
+    }
+
+    // --- TRANSAKSI & KERANJANG ---
+    function addToCart() {
+        const id = document.getElementById('t-id').value;
+        const qty = parseInt(document.getElementById('t-qty').value);
+        const p = produkList.find(i => i.id == id);
+        
+        if(!p || p.stok < qty) return alert("Produk tidak ada atau stok kurang!");
+        
+        const inCart = cart.find(item => item.id === id);
+        if(inCart) {
+            inCart.qty += qty;
+            inCart.subtotal = inCart.qty * p.harga;
+        } else {
+            cart.push({ id: p.id, nama: p.nama, qty, subtotal: p.harga * qty, harga: p.harga });
+        }
+        
+        p.stok -= qty;
+        document.getElementById('t-id').value = "";
+        document.getElementById('t-qty').value = 1;
+        updateCart();
+    }
+
+    function hapusItem(index) {
+        const item = cart[index];
+        const p = produkList.find(i => i.id === item.id);
+        if(p) p.stok += item.qty; // Kembalikan stok
+        cart.splice(index, 1); // Hapus dari keranjang
+        updateCart();
+    }
+
+    function updateCart() {
+        total = cart.reduce((sum, i) => sum + i.subtotal, 0);
+        document.getElementById('total-harga').innerText = "Rp " + formatRp(total);
+        document.getElementById('cart-summary').innerText = `Item: ${cart.length}`;
+        
+        const tbody = document.getElementById('cart-body');
+        tbody.innerHTML = cart.map((item, index) => `
+            <tr>
+                <td>${item.nama}</td>
+                <td>${formatRp(item.harga)}</td>
+                <td>${item.qty}</td>
+                <td>${formatRp(item.subtotal)}</td>
+                <td><button class="btn-hapus-item" onclick="hapusItem(${index})"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+    }
+
+    function prosesBayar() {
+        const bayar = parseInt(document.getElementById('uang-bayar').value);
+        if(!total || isNaN(bayar) || bayar < total) return alert("Uang kurang!");
+        
+        const kembalian = bayar - total;
+        let strukHtml = `
+            <div class="struk">
+                <div class="struk-header"><h2>THE DAY AFTER</h2><p>Kasir Modern</p></div>
+                <div class="struk-info">
+                    <p>Pelanggan : <strong>${pelangganAktif}</strong></p>
+                    <p>Waktu     : ${new Date().toLocaleString('id-ID')}</p>
+                </div>
+                <div class="struk-body">
+                    ${cart.map(i => `<div class="struk-row"><span style="flex:2">${i.nama}</span><span style="flex:0.5; text-align:center">${i.qty}</span><span style="flex:1; text-align:right">${formatRp(i.subtotal)}</span></div>`).join('')}
+                </div>
+                <div class="struk-footer">
+                    <div class="struk-row"><span>Total</span><span>${formatRp(total)}</span></div>
+                    <div class="struk-row struk-total"><span>Bayar</span><span>${formatRp(bayar)}</span></div>
+                    <div class="struk-row"><span>Kembali</span><span>${formatRp(kembalian)}</span></div>
+                </div>
+                <div class="lunas-stamp">TERIMA KASIH</div>
+            </div>`;
+        
+        document.getElementById('struk-area').innerHTML = strukHtml;
+        cart = []; total = 0; updateCart();
+        document.getElementById('uang-bayar').value = "";
+        showSection('struk-section');
+    }
+
+    function cariProduk() {
+        const q = document.getElementById('global-search').value.toLowerCase();
+        const res = document.getElementById('hasil-cari');
+        if(!q) { res.innerHTML = ""; return; }
+        const hasil = produkList.filter(p => p.id.toLowerCase().includes(q) || p.nama.toLowerCase().includes(q));
+        res.innerHTML = hasil.map(p => `
+            <div class="alert alert-info" style="display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>${p.nama}</strong> (${p.id})<br>Stok: ${p.stok}</div>
+                <button class="btn btn-primary" onclick="isiKeTransaksi('${p.id}')">Pilih</button>
+            </div>
+        `).join('');
+    }
+
+    function isiKeTransaksi(id) { showSection('transaksi'); document.getElementById('t-id').value = id; }
+</script>
+</body>
+</html>
