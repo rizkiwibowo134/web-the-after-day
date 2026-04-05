@@ -222,8 +222,7 @@
 </div>
 
 <script>
-    // --- KONFIGURASI GOOGLE SHEETS ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQhOfNxtbRbn2pozzNrNJTSB786YZ9XvDaGfORn5e8OaU2eRzcmD5RnFjnQ31FPMZ63Q/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyj5Z6qWjMdtuOiA4JabclfiZGgkVIxLGG4CGuNwyxQFx3a616kOzhb4Xcy_NlJacPT6Q/exec";
 
     let produkList = [];
     let antrian = []; 
@@ -272,7 +271,6 @@
 
     function formatRp(nom) { return Number(nom).toLocaleString('id-ID'); }
 
-    // --- PRODUK ---
     function tambahProduk() {
         const id = document.getElementById('p-id').value;
         const nama = document.getElementById('p-nama').value;
@@ -316,33 +314,17 @@
         div.innerHTML = h + `</table>`;
     }
 
-    // --- FUNGSI HAPUS YANG SUDAH DIPERBAIKI ---
     function hapusProduk(id) {
-        if(confirm("Apakah Anda yakin ingin menghapus produk ini dari database?")) {
+        if(confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
             document.getElementById('loader').style.display = 'block';
-
-            const dataKirim = {
-                action: "hapusProduk",
-                id: id
-            };
-
             fetch(SCRIPT_URL, {
                 method: "POST",
-                body: JSON.stringify(dataKirim)
+                body: JSON.stringify({ action: "hapusProduk", id: id })
             })
-            .then(res => res.text())
-            .then(result => {
-                console.log(result);
-                // Sinkronisasi data lokal web
+            .then(() => {
                 produkList = produkList.filter(p => p.id !== id);
                 renderProduk();
                 document.getElementById('loader').style.display = 'none';
-                alert("Data berhasil dihapus dari Google Sheets!");
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('loader').style.display = 'none';
-                alert("Gagal menghapus data!");
             });
         }
     }
@@ -375,7 +357,6 @@
         isEditing = false;
     }
 
-    // --- ANTRIAN ---
     function enqueue() {
         const n = document.getElementById('nama-pelanggan').value;
         if(!n) return;
@@ -394,7 +375,6 @@
         document.getElementById('antrian-list').innerHTML = h + "</ul>";
     }
 
-    // --- TRANSAKSI & KERANJANG ---
     function addToCart() {
         const id = document.getElementById('t-id').value;
         const qty = parseInt(document.getElementById('t-qty').value);
@@ -447,11 +427,16 @@
         
         document.getElementById('loader').style.display = 'block';
 
+        // GABUNGKAN RINCIAN BARANG: "Kopi (2), Roti (1)"
+        const rincian = cart.map(i => `${i.nama} (${i.qty})`).join(", ");
+
         const dataKirim = {
             action: "simpanTransaksi",
             pelanggan: pelangganAktif,
+            rincian: rincian, // Bagian baru
             total: total,
-            bayar: bayar
+            bayar: bayar,
+            items: cart // Tetap dikirim untuk pengurangan stok di GS
         };
 
         fetch(SCRIPT_URL, {
