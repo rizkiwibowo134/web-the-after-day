@@ -82,10 +82,15 @@
 
         .btn-hapus-item { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1em; }
         .btn-hapus-item:hover { color: #a71d2a; }
+
+        /* Loading Spinner */
+        #loader { display:none; position:fixed; top:20px; right:20px; background: #28a745; color:white; padding:10px 20px; border-radius:30px; z-index:10000; }
     </style>
 </head>
 
 <body>
+
+<div id="loader"><i class="fas fa-spinner fa-spin"></i> Memproses ke Google Sheets...</div>
 
 <div id="login-page">
     <div class="login-card">
@@ -217,12 +222,37 @@
 </div>
 
 <script>
+    // --- KONFIGURASI GOOGLE SHEETS ---
+    const SCRIPT_URL = "PASTE_URL_WEB_APP_ANDA_DISINI";
+
     let produkList = [];
     let antrian = []; 
     let cart = [];    
     let total = 0;
     let pelangganAktif = "Umum"; 
     let isEditing = false;
+
+    // Load data otomatis saat web dibuka
+    window.onload = function() {
+        tarikDataDariSheets();
+    };
+
+    function tarikDataDariSheets() {
+        document.getElementById('loader').style.display = 'block';
+        fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                produkList = data.map(row => ({
+                    id: String(row[0]), nama: row[1], harga: Number(row[2]), stok: Number(row[3])
+                }));
+                renderProduk();
+                document.getElementById('loader').style.display = 'none';
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('loader').style.display = 'none';
+            });
+    }
 
     function login() {
         const u = document.getElementById('username').value;
@@ -249,14 +279,35 @@
         const nama = document.getElementById('p-nama').value;
         const harga = parseInt(document.getElementById('p-harga').value);
         const stok = parseInt(document.getElementById('p-stok').value);
+        
         if(!id || !nama || isNaN(harga)) return alert("Lengkapi data!");
-        produkList.push({ id, nama, harga, stok });
-        resetFormProduk(); renderProduk();
+
+        document.getElementById('loader').style.display = 'block';
+
+        const dataKirim = {
+            action: "simpanProduk",
+            id: id,
+            nama: nama,
+            harga: harga,
+            stok: stok
+        };
+
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(dataKirim)
+        })
+        .then(() => {
+            produkList.push({ id, nama, harga, stok });
+            resetFormProduk(); 
+            renderProduk();
+            document.getElementById('loader').style.display = 'none';
+            alert("Data tersimpan ke Google Sheets!");
+        });
     }
 
     function renderProduk() {
         const div = document.getElementById('produk-table');
-        if(produkList.length === 0) { div.innerHTML = "<p>Kosong.</p>"; return; }
+        if(produkList.length === 0) { div.innerHTML = "<p>Menghubungkan ke database...</p>"; return; }
         let h = `<table><tr><th>ID</th><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr>`;
         produkList.forEach(p => {
             h += `<tr><td>${p.id}</td><td>${p.nama}</td><td>Rp ${formatRp(p.harga)}</td><td>${p.stok}</td>
@@ -277,6 +328,7 @@
     }
 
     function updateProduk() {
+        // Untuk update lebih kompleks, sementara kita simpan lokal & Anda perlu refresh manual ke Sheets
         const id = document.getElementById('p-id').value;
         const i = produkList.findIndex(p => p.id === id);
         produkList[i].nama = document.getElementById('p-nama').value;
@@ -339,8 +391,8 @@
     function hapusItem(index) {
         const item = cart[index];
         const p = produkList.find(i => i.id === item.id);
-        if(p) p.stok += item.qty; // Kembalikan stok
-        cart.splice(index, 1); // Hapus dari keranjang
+        if(p) p.stok += item.qty; 
+        cart.splice(index, 1);
         updateCart();
     }
 
@@ -365,29 +417,45 @@
         const bayar = parseInt(document.getElementById('uang-bayar').value);
         if(!total || isNaN(bayar) || bayar < total) return alert("Uang kurang!");
         
-        const kembalian = bayar - total;
-        let strukHtml = `
-            <div class="struk">
-                <div class="struk-header"><h2>THE DAY AFTER</h2><p>Kasir Modern</p></div>
-                <div class="struk-info">
-                    <p>Pelanggan : <strong>${pelangganAktif}</strong></p>
-                    <p>Waktu     : ${new Date().toLocaleString('id-ID')}</p>
-                </div>
-                <div class="struk-body">
-                    ${cart.map(i => `<div class="struk-row"><span style="flex:2">${i.nama}</span><span style="flex:0.5; text-align:center">${i.qty}</span><span style="flex:1; text-align:right">${formatRp(i.subtotal)}</span></div>`).join('')}
-                </div>
-                <div class="struk-footer">
-                    <div class="struk-row"><span>Total</span><span>${formatRp(total)}</span></div>
-                    <div class="struk-row struk-total"><span>Bayar</span><span>${formatRp(bayar)}</span></div>
-                    <div class="struk-row"><span>Kembali</span><span>${formatRp(kembalian)}</span></div>
-                </div>
-                <div class="lunas-stamp">TERIMA KASIH</div>
-            </div>`;
-        
-        document.getElementById('struk-area').innerHTML = strukHtml;
-        cart = []; total = 0; updateCart();
-        document.getElementById('uang-bayar').value = "";
-        showSection('struk-section');
+        document.getElementById('loader').style.display = 'block';
+
+        const dataKirim = {
+            action: "simpanTransaksi",
+            pelanggan: pelangganAktif,
+            total: total,
+            bayar: bayar
+        };
+
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(dataKirim)
+        })
+        .then(() => {
+            const kembalian = bayar - total;
+            let strukHtml = `
+                <div class="struk">
+                    <div class="struk-header"><h2>THE DAY AFTER</h2><p>Kasir Modern</p></div>
+                    <div class="struk-info">
+                        <p>Pelanggan : <strong>${pelangganAktif}</strong></p>
+                        <p>Waktu     : ${new Date().toLocaleString('id-ID')}</p>
+                    </div>
+                    <div class="struk-body">
+                        ${cart.map(i => `<div class="struk-row"><span style="flex:2">${i.nama}</span><span style="flex:0.5; text-align:center">${i.qty}</span><span style="flex:1; text-align:right">${formatRp(i.subtotal)}</span></div>`).join('')}
+                    </div>
+                    <div class="struk-footer">
+                        <div class="struk-row"><span>Total</span><span>${formatRp(total)}</span></div>
+                        <div class="struk-row struk-total"><span>Bayar</span><span>${formatRp(bayar)}</span></div>
+                        <div class="struk-row"><span>Kembali</span><span>${formatRp(kembalian)}</span></div>
+                    </div>
+                    <div class="lunas-stamp">TERIMA KASIH</div>
+                </div>`;
+            
+            document.getElementById('struk-area').innerHTML = strukHtml;
+            cart = []; total = 0; updateCart();
+            document.getElementById('uang-bayar').value = "";
+            document.getElementById('loader').style.display = 'none';
+            showSection('struk-section');
+        });
     }
 
     function cariProduk() {
