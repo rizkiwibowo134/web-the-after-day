@@ -223,7 +223,7 @@
 
 <script>
     // --- KONFIGURASI GOOGLE SHEETS ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD94VcK-g63jIf5wGMRbptoUU1SgoF_9gtYrEHZZZPD5scaIFFW-1p3nd4SbYz1RKFGQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQhOfNxtbRbn2pozzNrNJTSB786YZ9XvDaGfORn5e8OaU2eRzcmD5RnFjnQ31FPMZ63Q/exec";
 
     let produkList = [];
     let antrian = []; 
@@ -232,7 +232,6 @@
     let pelangganAktif = "Umum"; 
     let isEditing = false;
 
-    // Load data otomatis saat web dibuka
     window.onload = function() {
         tarikDataDariSheets();
     };
@@ -311,9 +310,41 @@
         let h = `<table><tr><th>ID</th><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr>`;
         produkList.forEach(p => {
             h += `<tr><td>${p.id}</td><td>${p.nama}</td><td>Rp ${formatRp(p.harga)}</td><td>${p.stok}</td>
-            <td><button class="btn-warning" onclick="prepareEdit('${p.id}')">Edit</button> <button class="btn-danger" onclick="hapusProduk('${p.id}')">Hapus</button></td></tr>`;
+            <td><button class="btn-warning" onclick="prepareEdit('${p.id}')">Edit</button> 
+            <button class="btn-danger" onclick="hapusProduk('${p.id}')">Hapus</button></td></tr>`;
         });
         div.innerHTML = h + `</table>`;
+    }
+
+    // --- FUNGSI HAPUS YANG SUDAH DIPERBAIKI ---
+    function hapusProduk(id) {
+        if(confirm("Apakah Anda yakin ingin menghapus produk ini dari database?")) {
+            document.getElementById('loader').style.display = 'block';
+
+            const dataKirim = {
+                action: "hapusProduk",
+                id: id
+            };
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify(dataKirim)
+            })
+            .then(res => res.text())
+            .then(result => {
+                console.log(result);
+                // Sinkronisasi data lokal web
+                produkList = produkList.filter(p => p.id !== id);
+                renderProduk();
+                document.getElementById('loader').style.display = 'none';
+                alert("Data berhasil dihapus dari Google Sheets!");
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('loader').style.display = 'none';
+                alert("Gagal menghapus data!");
+            });
+        }
     }
 
     function prepareEdit(id) {
@@ -328,7 +359,6 @@
     }
 
     function updateProduk() {
-        // Untuk update lebih kompleks, sementara kita simpan lokal & Anda perlu refresh manual ke Sheets
         const id = document.getElementById('p-id').value;
         const i = produkList.findIndex(p => p.id === id);
         produkList[i].nama = document.getElementById('p-nama').value;
@@ -344,8 +374,6 @@
         document.getElementById('btn-container').innerHTML = `<button class="btn btn-success" onclick="tambahProduk()">Simpan Produk</button>`;
         isEditing = false;
     }
-
-    function hapusProduk(id) { if(confirm("Hapus?")) { produkList = produkList.filter(p => p.id !== id); renderProduk(); } }
 
     // --- ANTRIAN ---
     function enqueue() {
